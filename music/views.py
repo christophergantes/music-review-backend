@@ -6,12 +6,12 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from music.models import Album
 from music.serializers import AlbumSerializer
-from music.services.musicbrainz import get_or_create_album, get_release_groups
+from music.services.musicbrainz import get_or_create_album, search_release_groups
 
 
 class AlbumView(ReadOnlyModelViewSet):
     serializer_class = AlbumSerializer
-    queryset = Album.objects.select_related("artist")
+    queryset = Album.objects.prefetch_related("artists")
 
 
 class AlbumSearchView(APIView):
@@ -23,7 +23,7 @@ class AlbumSearchView(APIView):
                 {"error": "Title required"}, status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            data = get_release_groups(title)
+            data = search_release_groups(title)
         except requests.RequestException:
             return Response(
                 {"error": "MusicBrainz API could not be reached"},
